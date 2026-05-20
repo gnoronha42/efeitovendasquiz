@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Efeito Vendas — Diagnóstico Gratuito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07080a;
+    --surface: #0f1114 !important;
+    --surface2: #161a1e !important;
+    --border: #1e2328;
+    --accent: #ff4d1c;
+    --accent2: #ff6b3d;
+    --text: #f0f0f0;
+    --muted: #b0b8c8;
+    --success: #22c55e;
+    --warning: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    background: #07080a !important;
+  }
+
+  body {
+    background: #07080a !important;
+    color: #f0f0f0 !important;
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grain + glow */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 50% -10%, rgba(255,77,28,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 100%, rgba(255,77,28,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Noise texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.2;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+
+  /* HEADER */
+  .logo {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 3px;
+    color: #ff4d1c !important;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: #b0b8c8;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    margin-bottom: 36px;
+  }
+
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-size: 12px;
+    color: #b0b8c8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .progress-step {
+    font-size: 12px;
+    color: #b0b8c8;
+  }
+
+  .progress-step span {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: #1e2328 !important;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  /* STEP CARD */
+  .step {
+    display: none;
+    animation: stepIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .step.active {
+    display: block;
+  }
+
+  @keyframes stepIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* CONTEXT TAG */
+  .context-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,77,28,0.12);
+    border: 1px solid rgba(255,77,28,0.25);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .context-tag::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+  }
+
+  /* HEADLINE */
+  .headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 6vw, 48px);
+    line-height: 1.0;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    color: #ffffff !important;
+  }
+
+  .headline em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .subtext {
+    font-size: 15px;
+    color: #d0d8e8 !important;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+
+  .subtext strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* OPTIONS */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #0f1114 !important;
+    border: 1px solid #1e2328 !important;
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,77,28,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .option:hover {
+    border-color: rgba(255,77,28,0.4);
+    transform: translateX(4px);
+  }
+
+  .option:hover::before {
+    opacity: 1;
+  }
+
+  .option.selected {
+    border-color: var(--accent);
+    background: rgba(255,77,28,0.08);
+  }
+
+  .option.selected::before {
+    opacity: 1;
+  }
+
+  .option-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  .option.selected .option-icon {
+    background: rgba(255,77,28,0.2);
+  }
+
+  .option-content {
+    flex: 1;
+  }
+
+  .option-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: #ffffff !important;
+    line-height: 1.3;
+  }
+
+  .option-desc {
+    font-size: 12px;
+    color: #8a95a8;
+    margin-top: 2px;
+  }
+
+  .option-check {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .option.selected .option-check {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  .option.selected .option-check::after {
+    content: '✓';
+    font-size: 11px;
+    color: white;
+    font-weight: 700;
+  }
+
+  /* INPUT FIELDS */
+  .fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-label {
+    font-size: 12px;
+    color: #c0c8d8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .field-input {
+    background: #0f1114 !important;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    color: #ffffff !important;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .field-input:focus {
+    border-color: rgba(255,77,28,0.5);
+    background: rgba(255,77,28,0.03);
+  }
+
+  .field-input::placeholder {
+    color: var(--muted);
+  }
+
+  /* BUTTONS */
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent2);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(255,77,28,0.3);
+  }
+
+  .btn-primary:hover::after {
+    opacity: 1;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-ghost {
+    background: none;
+    border: none;
+    color: #b0b8c8;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 8px;
+    transition: color 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-ghost:hover {
+    color: var(--text);
+  }
+
+  /* SOCIAL PROOF */
+  .social-proof {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    padding: 12px 16px;
+    background: #0f1114 !important;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .avatars {
+    display: flex;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    background: linear-gradient(135deg, var(--accent), #7B2FFF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: -8px;
+    color: white;
+  }
+
+  .avatar:first-child { margin-left: 0; }
+
+  .social-text {
+    font-size: 12px;
+    color: #b0b8c8;
+    line-height: 1.4;
+  }
+
+  .social-text strong {
+    color: var(--text);
+  }
+
+  /* DIAGNOSTIC CARD */
+  .diag-card {
+    background: #0f1114 !important;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .diag-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 3px 0 0 3px;
+  }
+
+  .diag-label {
+    font-size: 10px;
+    color: #ff7a52;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .diag-value {
+    font-size: 16px;
+    color: #ffffff !important;
+    font-weight: 500;
+  }
+
+  .diag-value.danger {
+    color: #ef4444;
+  }
+
+  .diag-value.warning {
+    color: var(--warning);
+  }
+
+  .diag-value.success {
+    color: var(--success);
+  }
+
+  /* RESULT SCREENS */
+  .result-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .result-badge.qualified {
+    background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--success);
+  }
+
+  .result-badge.nurture {
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--warning);
+  }
+
+  .cta-block {
+    background: linear-gradient(135deg, rgba(255,77,28,0.15), rgba(255,77,28,0.05)) !important;
+    border: 1px solid rgba(255,77,28,0.2);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .cta-block h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    color: #ffffff !important;
+  }
+
+  .cta-block p {
+    font-size: 14px;
+    color: #c0c8d8;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  /* LOADING */
+  .loading-screen {
+    text-align: center;
+    padding: 48px 0;
+  }
+
+  .loading-bars {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .bar {
+    width: 4px;
+    height: 40px;
+    background: var(--accent);
+    border-radius: 4px;
+    animation: barAnim 1.2s ease-in-out infinite;
+  }
+
+  .bar:nth-child(2) { animation-delay: 0.1s; }
+  .bar:nth-child(3) { animation-delay: 0.2s; }
+  .bar:nth-child(4) { animation-delay: 0.3s; }
+  .bar:nth-child(5) { animation-delay: 0.4s; }
+
+  @keyframes barAnim {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  .loading-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: #d0d8e8 !important;
+    margin-bottom: 8px;
+  }
+
+  .loading-sub {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* SCORE METER */
+  .score-ring {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+
+  .score-ring svg {
+    transform: rotate(-90deg);
+  }
+
+  .score-ring-value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    line-height: 1;
+    color: #ffffff !important;
+  }
+
+  .score-label {
+    font-size: 9px;
+    color: #b0b8c8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .check-item .icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .check-item.done { color: #ffffff !important; }
+  .check-item.warn { color: var(--warning); }
+  .check-item.bad { color: #ef4444; }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* FOOTER */
+  .footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 32px;
+    padding-bottom: 24px;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .headline { font-size: 30px; }
+    .container { padding: 0 16px; padding-top: 36px; padding-bottom: 36px; }
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 100;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .toast.error {
+    border-color: rgba(239,68,68,0.4);
+    color: #ef4444;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">
+    <div class="logo-text">EFEITO VENDAS</div>
+    <div class="logo-sub">Diagnóstico de Loja Shopee</div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-labels">
+      <span class="progress-label">Diagnóstico</span>
+      <span class="progress-step">Passo <span id="currentStep">1</span> de <span id="totalSteps">8</span></span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- ======== STEP 0: INTRO ======== -->
+  <div class="step active" id="step-0" data-step="0">
+    <div class="context-tag">Diagnóstico Gratuito • 2 min</div>
+    <h1 class="headline">Sua loja está vendendo <em>tudo que pode</em>?</h1>
+    <p class="subtext">Em <strong>2 minutos</strong> vamos identificar os principais gargalos que estão travando o crescimento da sua loja na Shopee — e te mostrar o caminho certo.</p>
+
+    <div class="social-proof">
+      <div class="avatars">
+        <div class="avatar">MR</div>
+        <div class="avatar">AT</div>
+        <div class="avatar">JC</div>
+        <div class="avatar">+</div>
+      </div>
+      <div class="social-text">
+        <strong>+7.000 vendedores</strong> já diagnosticaram suas lojas com a Efeito Vendas
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="nextStep()">INICIAR DIAGNÓSTICO →</button>
+    <div style="text-align:center; margin-top:12px; font-size:12px; color:#b0b8c8;">🔒 Gratuito. Sem compromisso. Resultado na hora.</div>
+  </div>
+
+  <!-- ======== STEP 1: DADOS PESSOAIS ======== -->
+  <div class="step" id="step-1" data-step="1">
+    <div class="context-tag">Passo 1 de 8</div>
+    <h1 class="headline">Vamos começar por <em>você</em></h1>
+    <p class="subtext">Para personalizar seu diagnóstico, preciso de algumas informações básicas.</p>
+
+    <div class="fields">
+      <div class="field-group">
+        <label class="field-label">Seu nome</label>
+        <input class="field-input" type="text" id="f_nome" placeholder="Como posso te chamar?" autocomplete="given-name">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Seu melhor e-mail</label>
+        <input class="field-input" type="email" id="f_email" placeholder="email@exemplo.com" autocomplete="email">
+      </div>
+      <div class="field-group">
+        <label class="field-label">WhatsApp (com DDD)</label>
+        <input class="field-input" type="tel" id="f_whatsapp" placeholder="(11) 99999-9999" autocomplete="tel">
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="validateStep1()">CONTINUAR →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== STEP 2: TIPO DE VENDEDOR ======== -->
+  <div class="step" id="step-2" data-step="2">
+    <div class="context-tag">Passo 2 de 8</div>
+    <h1 class="headline">Como você <em>opera</em> na Shopee?</h1>
+    <p class="subtext">Cada modelo tem gargalos diferentes. Me conta qual é o seu.</p>
+
+    <div class="options" id="opts-2">
+      <div class="option" onclick="selectOption(this, 'tipo', 'Revendedor')" data-value="Revendedor">
+        <div class="option-icon">🛒</div>
+        <div class="option-content">
+          <div class="option-label">Sou Revendedor</div>
+          <div class="option-desc">Compro produtos prontos e revendo</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'tipo', 'Fabricante')" data-value="Fabricante">
+        <div class="option-icon">🏭</div>
+        <div class="option-content">
+          <div class="option-label">Sou Fabricante</div>
+          <div class="option-desc">Produzo ou mando produzir o que vendo</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'tipo', 'Importador')" data-value="Importador">
+        <div class="option-icon">✈️</div>
+        <div class="option-content">
+          <div class="option-label">Sou Importador</div>
+          <div class="option-desc">Importo produtos do exterior</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-2" onclick="nextStep()" disabled>CONTINUAR →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== STEP 3: TEMPO DE LOJA ======== -->
+  <div class="step" id="step-3" data-step="3">
+    <div class="context-tag">Passo 3 de 8</div>
+    <h1 class="headline">Há quanto tempo você vende <em>na Shopee</em>?</h1>
+    <p class="subtext">O tempo de operação muda completamente a estratégia. Seja honesto — isso é pra te ajudar.</p>
+
+    <div class="options" id="opts-3">
+      <div class="option" onclick="selectOption(this, 'tempo', 'Menos de 3 meses')" data-value="Menos de 3 meses">
+        <div class="option-icon">🌱</div>
+        <div class="option-content">
+          <div class="option-label">Menos de 3 meses</div>
+          <div class="option-desc">Ainda estou me adaptando à plataforma</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'tempo', 'Entre 3 e 12 meses')" data-value="Entre 3 e 12 meses">
+        <div class="option-icon">📈</div>
+        <div class="option-content">
+          <div class="option-label">Entre 3 e 12 meses</div>
+          <div class="option-desc">Já tenho histórico, buscando escalar</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'tempo', 'Mais de 1 ano')" data-value="Mais de 1 ano">
+        <div class="option-icon">🏆</div>
+        <div class="option-content">
+          <div class="option-label">Mais de 1 ano</div>
+          <div class="option-desc">Operação consolidada, quero mais resultado</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'tempo', 'Mais de 3 anos')" data-value="Mais de 3 anos">
+        <div class="option-icon">🔥</div>
+        <div class="option-content">
+          <div class="option-label">Mais de 3 anos</div>
+          <div class="option-desc">Veterano, buscando próximo nível</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-3" onclick="nextStep()" disabled>CONTINUAR →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== STEP 4: FATURAMENTO ======== -->
+  <div class="step" id="step-4" data-step="4">
+    <div class="context-tag">Passo 4 de 8 — A pergunta decisiva</div>
+    <h1 class="headline">Qual é o faturamento <em>atual</em> da sua loja?</h1>
+    <p class="subtext">Faturamento real, não meta. Isso define qual caminho faz mais sentido pra você agora.</p>
+
+    <div class="options" id="opts-4">
+      <div class="option" onclick="selectOption(this, 'faturamento', 'ESTOU INICIANDO')" data-value="ESTOU INICIANDO">
+        <div class="option-icon">⚡</div>
+        <div class="option-content">
+          <div class="option-label">Ainda estou iniciando</div>
+          <div class="option-desc">Minha loja ainda não tem faturamento relevante</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'faturamento', 'ATÉ 10 MIL MÊS')" data-value="ATÉ 10 MIL MÊS">
+        <div class="option-icon">💰</div>
+        <div class="option-content">
+          <div class="option-label">Até R$ 10.000/mês</div>
+          <div class="option-desc">Já vendo, mas ainda abaixo do potencial</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'faturamento', 'ATÉ 50 MIL MÊS')" data-value="ATÉ 50 MIL MÊS">
+        <div class="option-icon">🚀</div>
+        <div class="option-content">
+          <div class="option-label">R$ 10k – R$ 50.000/mês</div>
+          <div class="option-desc">Operação rodando, quero acelerar</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'faturamento', 'ACIMA DE 50 MIL MÊS')" data-value="ACIMA DE 50 MIL MÊS">
+        <div class="option-icon">💎</div>
+        <div class="option-content">
+          <div class="option-label">Acima de R$ 50.000/mês</div>
+          <div class="option-desc">Alto volume, buscando maximizar margem</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'faturamento', 'ACIMA DE 1 MILHÃO MÊS')" data-value="ACIMA DE 1 MILHÃO MÊS">
+        <div class="option-icon">🏅</div>
+        <div class="option-content">
+          <div class="option-label">Acima de R$ 500k/mês</div>
+          <div class="option-desc">Grande operação, preciso de gestão especializada</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-4" onclick="nextStep()" disabled>CONTINUAR →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== STEP 5: MARGEM ======== -->
+  <div class="step" id="step-5" data-step="5">
+    <div class="context-tag">Passo 5 de 8 — O ponto cego</div>
+    <h1 class="headline">Você sabe sua <em>margem real</em> por produto?</h1>
+    <p class="subtext">Comissão Shopee + imposto + embalagem + Ads + frete. Muitos vendedores acham que lucram, mas na verdade estão <strong>pagando pra vender.</strong></p>
+
+    <div class="options" id="opts-5">
+      <div class="option" onclick="selectOption(this, 'margem', 'Sim, tenho planilha atualizada')" data-value="Sim, tenho planilha atualizada">
+        <div class="option-icon">✅</div>
+        <div class="option-content">
+          <div class="option-label">Sim, tenho planilha atualizada</div>
+          <div class="option-desc">Sei exatamente quanto lucro por produto</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'margem', 'Sei por alto, mas não tenho cálculo exato')" data-value="Sei por alto, mas não tenho cálculo exato">
+        <div class="option-icon">🤔</div>
+        <div class="option-content">
+          <div class="option-label">Sei por alto, sem cálculo exato</div>
+          <div class="option-desc">Tenho uma ideia, mas não é preciso</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'margem', 'Nunca calculei dessa forma')" data-value="Nunca calculei dessa forma">
+        <div class="option-icon">⚠️</div>
+        <div class="option-content">
+          <div class="option-label">Nunca calculei dessa forma</div>
+          <div class="option-desc">Não considerei todas essas variáveis</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'margem', 'Não sei — confio na intuição')" data-value="Não sei — confio na intuição">
+        <div class="option-icon">🎲</div>
+        <div class="option-content">
+          <div class="option-label">Confio na intuição</div>
+          <div class="option-desc">Não tenho esse controle ainda</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-5" onclick="nextStep()" disabled>CONTINUAR →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== STEP 6: MEDO ======== -->
+  <div class="step" id="step-6" data-step="6">
+    <div class="context-tag">Passo 6 de 8 — O diagnóstico real</div>
+    <h1 class="headline">Se nada mudar, o que mais te <em>preocupa</em>?</h1>
+    <p class="subtext">Essa resposta revela qual é o seu principal risco agora. Escolha o que mais ressoa com você.</p>
+
+    <div class="options" id="opts-6">
+      <div class="option" onclick="selectOption(this, 'medo', 'Continuar estagnado e ser ultrapassado pela concorrência')" data-value="Continuar estagnado e ser ultrapassado pela concorrência">
+        <div class="option-icon">😰</div>
+        <div class="option-content">
+          <div class="option-label">Ser ultrapassado pela concorrência</div>
+          <div class="option-desc">Minha loja não está crescendo enquanto outros crescem</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'medo', 'Perder margem até a operação não compensar mais')" data-value="Perder margem até a operação não compensar mais">
+        <div class="option-icon">📉</div>
+        <div class="option-content">
+          <div class="option-label">Perder margem até não compensar mais</div>
+          <div class="option-desc">Vendo muito, mas cada vez lucro menos</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'medo', 'Continuar refém do operacional sem estratégia')" data-value="Continuar refém do operacional sem estratégia">
+        <div class="option-icon">🔄</div>
+        <div class="option-content">
+          <div class="option-label">Ficar refém do operacional</div>
+          <div class="option-desc">Trabalho muito mas não consigo sair do lugar</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'medo', 'Sinceramente, não sei o que esperar')" data-value="Sinceramente, não sei o que esperar">
+        <div class="option-icon">❓</div>
+        <div class="option-content">
+          <div class="option-label">Não sei o que esperar</div>
+          <div class="option-desc">Ainda não tenho clareza sobre minha operação</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-6" onclick="nextStep()" disabled>CONTINUAR →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== STEP 7: DIFICULDADE ======== -->
+  <div class="step" id="step-7" data-step="7">
+    <div class="context-tag">Passo 7 de 8</div>
+    <h1 class="headline">Qual é sua <em>principal dificuldade</em> hoje?</h1>
+    <p class="subtext">Isso nos ajuda a personalizar o que vamos te mostrar no diagnóstico final.</p>
+
+    <div class="options" id="opts-7">
+      <div class="option" onclick="selectOption(this, 'dificuldade', 'Otimização De Anuncios')" data-value="Otimização De Anuncios">
+        <div class="option-icon">📢</div>
+        <div class="option-content">
+          <div class="option-label">Shopee Ads / Anúncios</div>
+          <div class="option-desc">Gasto com Ads mas não vejo retorno claro</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'dificuldade', 'Escalar Com Lucro')" data-value="Escalar Com Lucro">
+        <div class="option-icon">📊</div>
+        <div class="option-content">
+          <div class="option-label">Escalar com lucro</div>
+          <div class="option-desc">Não consigo crescer sem perder margem</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'dificuldade', 'Melhorar Shopee Ads')" data-value="Melhorar Shopee Ads">
+        <div class="option-icon">🎯</div>
+        <div class="option-content">
+          <div class="option-label">Melhorar conversão dos anúncios</div>
+          <div class="option-desc">Tenho visitas mas poucas vendas</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'dificuldade', 'Ajuda Com a Central De Marketing')" data-value="Ajuda Com a Central De Marketing">
+        <div class="option-icon">🎪</div>
+        <div class="option-content">
+          <div class="option-label">Central de Marketing / Afiliados</div>
+          <div class="option-desc">Não sei usar as ferramentas da plataforma</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'dificuldade', 'Tudo Isso Junto 😅')" data-value="Tudo Isso Junto 😅">
+        <div class="option-icon">😅</div>
+        <div class="option-content">
+          <div class="option-label">Tudo isso junto</div>
+          <div class="option-desc">São vários problemas ao mesmo tempo</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-7" onclick="nextStep()" disabled>CONTINUAR →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== STEP 8: INVESTIMENTO ======== -->
+  <div class="step" id="step-8" data-step="8">
+    <div class="context-tag">Última pergunta</div>
+    <h1 class="headline">Uma pergunta <em>honesta</em> antes do diagnóstico</h1>
+    <p class="subtext">Se os resultados justificarem, você estaria disposto a investir em gestão profissional especializada para sua loja?</p>
+
+    <div class="options" id="opts-8">
+      <div class="option" onclick="selectOption(this, 'investimento', 'Sim, já tenho orçamento reservado pra isso.')" data-value="Sim, já tenho orçamento reservado pra isso.">
+        <div class="option-icon">✅</div>
+        <div class="option-content">
+          <div class="option-label">Sim, já tenho orçamento para isso</div>
+          <div class="option-desc">Estou pronto para investir se fizer sentido</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'investimento', 'Sim, se eu ver o caso de sucesso compatível com minha realidade.')" data-value="Sim, se eu ver o caso de sucesso compatível com minha realidade.">
+        <div class="option-icon">🤝</div>
+        <div class="option-content">
+          <div class="option-label">Sim, se o caso de sucesso fizer sentido</div>
+          <div class="option-desc">Quero ver resultados reais antes de decidir</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'investimento', 'Talvez, depende muito do valor.')" data-value="Talvez, depende muito do valor.">
+        <div class="option-icon">💭</div>
+        <div class="option-content">
+          <div class="option-label">Talvez, depende do valor</div>
+          <div class="option-desc">Tenho interesse mas preciso avaliar o custo</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+      <div class="option" onclick="selectOption(this, 'investimento', 'Não, busco apenas orientação gratuita por enquanto.')" data-value="Não, busco apenas orientação gratuita por enquanto.">
+        <div class="option-icon">🚫</div>
+        <div class="option-content">
+          <div class="option-label">Não agora, só quero orientação gratuita</div>
+          <div class="option-desc">Ainda não estou pronto para investir</div>
+        </div>
+        <div class="option-check"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-8" onclick="processResult()" disabled>VER MEU DIAGNÓSTICO →</button>
+    <div style="text-align:center"><button class="btn-ghost" onclick="prevStep()">← Voltar</button></div>
+  </div>
+
+  <!-- ======== LOADING ======== -->
+  <div class="step" id="step-loading" data-step="loading">
+    <div class="loading-screen">
+      <div class="loading-bars">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+      <div class="loading-label">ANALISANDO SUA LOJA</div>
+      <div class="loading-sub" id="loadingText">Calculando pontuação de qualificação...</div>
+    </div>
+  </div>
+
+  <!-- ======== RESULT: QUALIFICADO ======== -->
+  <div class="step" id="step-qualified" data-step="result">
+    <div class="result-badge qualified">✓ Diagnóstico Concluído</div>
+
+    <h1 class="headline"><em>Identificamos</em> onde sua loja está perdendo dinheiro</h1>
+    <p class="subtext">Com base nas suas respostas, montamos um diagnóstico rápido da sua operação atual.</p>
+
+    <div id="qualifiedDiagCards"></div>
+
+    <div class="cta-block">
+      <h3>PRÓXIMO PASSO: ANÁLISE COMPLETA GRATUITA</h3>
+      <p>Nosso especialista vai fazer uma análise completa da sua loja ao vivo — mostrando exatamente onde você está perdendo vendas e o que ajustar para aumentar seu faturamento.</p>
+      <button class="btn-primary" onclick="redirectQualified()">AGENDAR MINHA ANÁLISE GRATUITA →</button>
+    </div>
+
+    <div style="text-align:center; font-size:12px; color:#b0b8c8; margin-top:12px;">
+      ⏱️ Vagas limitadas · Sem compromisso de compra
+    </div>
+  </div>
+
+  <!-- ======== RESULT: NURTURE ======== -->
+  <div class="step" id="step-nurture" data-step="result">
+    <div class="result-badge nurture">✅ Acesso Liberado</div>
+
+    <h1 class="headline">Bem-vinda ao <em>Grupo VIP</em></h1>
+    <p class="subtext">Você ganhou acesso ao nosso grupo exclusivo no WhatsApp com estratégias, ferramentas e conteúdo pra você crescer na Shopee.</p>
+
+    <div class="diag-card">
+      <div class="diag-label">O que você recebe</div>
+      <div class="diag-value">Acesso imediato ao grupo VIP no WhatsApp</div>
+    </div>
+
+    <div class="checklist">
+      <div class="check-item done">
+        <span class="icon">📊</span>
+        <span><strong>Estratégias práticas toda semana</strong><br><span style="font-size:12px;color:#b0b8c8">O que realmente funciona na Shopee em 2026</span></span>
+      </div>
+      <div class="check-item done">
+        <span class="icon">🛠️</span>
+        <span><strong>Acesso exclusivo a ferramentas que aceleram suas vendas na plataforma</strong></span>
+      </div>
+      <div class="check-item done">
+        <span class="icon">🔥</span>
+        <span><strong>Acesso antecipado a lançamentos</strong><br><span style="font-size:12px;color:#b0b8c8">Seja a primeira a saber das novidades Efeito Vendas</span></span>
+      </div>
+      <div class="check-item done">
+        <span class="icon">👥</span>
+        <span><strong>Comunidade de vendedores Shopee</strong><br><span style="font-size:12px;color:#b0b8c8">Troca de experiências com quem está no mesmo caminho</span></span>
+      </div>
+    </div>
+
+    <div class="cta-block">
+      <h3>SEU ACESSO ESTÁ LIBERADO</h3>
+      <p>Clique no botão abaixo para entrar no Grupo VIP Shopee agora mesmo.</p>
+      <button class="btn-primary" onclick="redirectNurture()" style="background:#25D366;">
+        💬 ENTRAR NO GRUPO AGORA
+      </button>
+    </div>
+
+    <div style="text-align:center; font-size:12px; color:#b0b8c8; margin-top:12px;">
+      🔒 Acesso instantâneo · Sem spam · Você sai quando quiser
+    </div>
+  </div>
+
+  <div class="footer-note">Efeito Vendas © 2025 · Santo Ads Treinamentos Digitais LTDA</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== CONFIG =====
+  const SUPABASE_URL = 'https://gtlqjeuuwhxoxsffvepg.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bHFqZXV1d2h4b3hzZmZ2ZXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzkwNDEsImV4cCI6MjA5MzA1NTA0MX0.fyrcioMRHyFEnKBC-KQeXH3jcCbb19C9rD43h5DRsWY';
+  const CAMPANHA = 'Disparo PN';
+
+  const URL_QUALIFIED = 'https://calendly.com/efeitovendas02/30min';
+  const URL_NURTURE   = 'https://chat.whatsapp.com/JekqKChZndmChlCCYytCHw';
+
+  // ===== STATE =====
+  let currentStep = 0;
+  const TOTAL_STEPS = 8;
+  let answers = {};
+
+  // ===== NAVIGATION =====
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById('step-' + n);
+    if (target) {
+      target.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    updateProgress(n);
+  }
+
+  function updateProgress(step) {
+    const fill = document.getElementById('progressFill');
+    const cur = document.getElementById('currentStep');
+    const tot = document.getElementById('totalSteps');
+
+    if (step === 0 || step === 'loading' || step === 'qualified' || step === 'nurture') {
+      fill.style.width = step === 0 ? '0%' : '100%';
+      if (cur) cur.textContent = step === 0 ? '0' : TOTAL_STEPS;
+      return;
+    }
+
+    const pct = (step / TOTAL_STEPS) * 100;
+    fill.style.width = pct + '%';
+    if (cur) cur.textContent = step;
+  }
+
+  function nextStep() {
+    if (currentStep < TOTAL_STEPS) {
+      currentStep++;
+      showStep(currentStep);
+    }
+  }
+
+  function prevStep() {
+    if (currentStep > 0) {
+      currentStep--;
+      showStep(currentStep);
+    }
+  }
+
+  // ===== OPTION SELECTION =====
+  function selectOption(el, field, value) {
+    const container = el.closest('.options');
+    container.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[field] = value;
+
+    // Enable next button
+    const btn = document.getElementById('btn-' + currentStep);
+    if (btn) btn.disabled = false;
+  }
+
+  // ===== STEP 1 VALIDATION =====
+  function validateStep1() {
+    const nome = document.getElementById('f_nome').value.trim();
+    const email = document.getElementById('f_email').value.trim();
+    const wpp = document.getElementById('f_whatsapp').value.trim();
+
+    if (!nome) { showToast('Por favor, informe seu nome', 'error'); return; }
+    if (!email || !email.includes('@')) { showToast('E-mail inválido', 'error'); return; }
+    if (!wpp || wpp.length < 8) { showToast('WhatsApp inválido', 'error'); return; }
+
+    answers.nome = nome;
+    answers.email = email;
+    answers.whatsapp = wpp;
+    nextStep();
+  }
+
+  // ===== QUALIFICATION LOGIC =====
+  // ===== ROTEAMENTO POR TEMPERATURA =====
+  // Quente + Morno → Calendly (qualified)
+  // Frio (iniciantes / não quer investir) → Grupo VIP (nurture)
+  function isQualified() {
+    const temp = calcTemperatura(answers);
+    return temp === 'quente' || temp === 'morno';
+  }
+
+  // ===== RESULT PROCESSING =====
+  async function processResult() {
+    answers.origem = 'Quiz Anúncio Shopee';
+    answers.timestamp = new Date().toISOString();
+    answers.qualificado = isQualified();
+
+    // Show loading
+    currentStep = 'loading';
+    showStep('loading');
+
+    const msgs = [
+      'Calculando pontuação de qualificação...',
+      'Analisando perfil da operação...',
+      'Gerando diagnóstico personalizado...',
+      'Quase pronto...'
+    ];
+    let mi = 0;
+    const lt = document.getElementById('loadingText');
+    const interval = setInterval(() => {
+      if (mi < msgs.length) { lt.textContent = msgs[mi++]; }
+    }, 700);
+
+    try {
+      // SEMPRE salva no Supabase pra aparecer no Disparo PN
+      await saveToSupabase(answers);
+    } catch (e) {
+      console.warn('Save error:', e);
+      saveToLocal(answers);
+    }
+
+    setTimeout(() => {
+      clearInterval(interval);
+      if (answers.qualificado) {
+        showQualifiedResult();
+      } else {
+        showNurtureResult();
+      }
+    }, 3200);
+  }
+
+  // ===== RESULTS =====
+  function showQualifiedResult() {
+    // Build diagnosis cards
+    const cards = document.getElementById('qualifiedDiagCards');
+    cards.innerHTML = '';
+
+    const fat = answers.faturamento || '';
+    const margem = answers.margem || '';
+    const medo = answers.medo || '';
+    const dif = answers.dificuldade || '';
+
+    const scoreData = calcScore();
+
+    // Score ring
+    cards.innerHTML += `
+      <div style="text-align:center; margin-bottom:24px;">
+        <div class="score-ring">
+          <svg width="100" height="100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#1e2328" stroke-width="8"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#ff4d1c" stroke-width="8"
+              stroke-dasharray="${2 * Math.PI * 42}"
+              stroke-dashoffset="${2 * Math.PI * 42 * (1 - scoreData.pct / 100)}"
+              stroke-linecap="round"/>
+          </svg>
+          <div class="score-ring-value">
+            <span class="score-number">${scoreData.pct}</span>
+            <span class="score-label">SCORE</span>
+          </div>
+        </div>
+        <div style="font-size:13px; color:#b0b8c8; margin-top:8px;">${scoreData.label}</div>
+      </div>
+    `;
+
+    cards.innerHTML += `<div class="diag-card">
+      <div class="diag-label">Faturamento Declarado</div>
+      <div class="diag-value success">${fat}</div>
+    </div>`;
+
+    const margemClass = margem.includes('planilha') ? 'success' : margem.includes('intuição') || margem.includes('Nunca') ? 'danger' : 'warning';
+    cards.innerHTML += `<div class="diag-card">
+      <div class="diag-label">Controle de Margem</div>
+      <div class="diag-value ${margemClass}">${margem}</div>
+    </div>`;
+
+    cards.innerHTML += `<div class="diag-card">
+      <div class="diag-label">Principal Risco Identificado</div>
+      <div class="diag-value warning">${medo}</div>
+    </div>`;
+
+    cards.innerHTML += `<div class="diag-card">
+      <div class="diag-label">Prioridade de Trabalho</div>
+      <div class="diag-value">${dif}</div>
+    </div>`;
+
+    showStep('qualified');
+  }
+
+  function showNurtureResult() {
+    showStep('nurture');
+  }
+
+  function calcScore() {
+    let pts = 0;
+    const fat = answers.faturamento || '';
+    const margem = answers.margem || '';
+    const inv = answers.investimento || '';
+
+    if (fat === 'ATÉ 10 MIL MÊS') pts += 25;
+    if (fat === 'ATÉ 50 MIL MÊS') pts += 50;
+    if (fat === 'ACIMA DE 50 MIL MÊS') pts += 75;
+    if (fat === 'ACIMA DE 1 MILHÃO MÊS') pts += 90;
+
+    if (margem.includes('planilha')) pts += 20;
+    else if (margem.includes('alto')) pts += 10;
+
+    if (inv.includes('orçamento')) pts += 20;
+    else if (inv.includes('caso de sucesso')) pts += 15;
+    else if (inv.includes('Talvez')) pts += 5;
+
+    const pct = Math.min(pts, 100);
+    let label = 'Potencial moderado de crescimento';
+    if (pct >= 70) label = 'Alto potencial — prioridade para diagnóstico';
+    else if (pct >= 40) label = 'Bom potencial — oportunidades claras de melhoria';
+
+    return { pct, label };
+  }
+
+  // ===== REDIRECTS =====
+  function redirectQualified() {
+    window.location.href = URL_QUALIFIED;
+  }
+
+  function redirectNurture() {
+    window.location.href = URL_NURTURE;
+  }
+
+  // ===== TEMPERATURA =====
+  function calcTemperatura(data) {
+    const fat = data.faturamento || '';
+    const inv = data.investimento || '';
+    const isIniciando = fat === 'ESTOU INICIANDO';
+    const naoQuer = inv.includes('apenas orientação gratuita');
+
+    if (!isIniciando && (inv.includes('orçamento') || inv.includes('caso de sucesso'))) return 'quente';
+    if (!isIniciando && inv.includes('Talvez')) return 'morno';
+    return 'frio';
+  }
+
+  // ===== SUPABASE SAVE (qualificados) =====
+  async function saveToSupabase(data) {
+    const temp = calcTemperatura(data);
+    const agora = new Date().toISOString();
+    const id = 'pn_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+
+    const payload = {
+      id: id,
+      name: data.nome,
+      first_name: data.nome.split(' ')[0],
+      email: data.email,
+      phone: '55' + data.whatsapp.replace(/\D/g,''),
+      phone_raw: data.whatsapp,
+      company: data.tipo || '',
+      stage: 'novo',
+      tier: temp,
+      source: 'quiz_disparo_pn',
+      origem: CAMPANHA,
+      faturamento: data.faturamento || '',
+      disposicao: data.investimento || '',
+      dificuldade: data.dificuldade || '',
+      empresa_tipo: data.tipo || '',
+      tempo_vendendo: data.tempo || '',
+      margem: data.margem || '',
+      preocupacao: data.medo || '',
+      pipeline_stage: 'Disparo PN',
+      sender_id: 1,
+      history: [{ at: agora, text: 'Lead via Quiz Disparo PN — ' + temp.toUpperCase(), type: 'created' }],
+      raw: {
+        nome: data.nome,
+        email: data.email,
+        whatsapp: data.whatsapp,
+        faturamento: data.faturamento,
+        investimento: data.investimento,
+        dificuldade: data.dificuldade,
+        medo: data.medo,
+        margem: data.margem,
+        tipo: data.tipo,
+        tempo: data.tempo,
+        temperatura: temp,
+        campanha: CAMPANHA,
+        origem: 'Quiz site anúncio Shopee'
+      },
+      created_at_custom: agora
+    };
+
+    const res = await fetch(SUPABASE_URL + '/rest/v1/leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error('Supabase: ' + err);
+    }
+    return true;
+  }
+
+  // ===== LOCAL SAVE (não qualificados — nurture) =====
+  function saveToLocal(data) {
+    try {
+      const stored = JSON.parse(localStorage.getItem('ev_leads_nurture') || '[]');
+      stored.push(data);
+      localStorage.setItem('ev_leads_nurture', JSON.stringify(stored));
+    } catch(e) {}
+  }
+
+  // ===== TOAST =====
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (type ? ' ' + type : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ===== CSV EXPORT =====
+  // ?export=qualificados  → baixa planilha SDR
+  // ?export=nurture       → baixa planilha nurture
+  // ?export=todos         → baixa tudo junto
+  // ?limpar=sim           → apaga tudo do localStorage
+  function downloadCSV(data, filename) {
+    if (!data.length) { alert('Nenhum lead encontrado para exportar.'); return; }
+    const keys = ['nome','email','whatsapp','tipo','tempo','faturamento','margem','medo','dificuldade','investimento','qualificado','origem','timestamp'];
+    const header = ['Nome','Email','WhatsApp','Tipo Vendedor','Tempo Shopee','Faturamento','Margem','Medo Principal','Dificuldade','Investimento','Qualificado','Origem','Data'];
+    const rows = [header.join(','), ...data.map(r => keys.map(k => `"${(r[k]||'').toString().replace(/"/g,'""')}"`).join(','))];
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
+  function checkExport() {
+    const p = new URLSearchParams(window.location.search);
+    const exp = p.get('export');
+    const limpar = p.get('limpar');
+
+    if (limpar === 'sim') {
+      localStorage.removeItem('ev_leads_qualificados');
+      localStorage.removeItem('ev_leads_nurture');
+      alert('Dados apagados do localStorage.');
+      return;
+    }
+
+    if (exp === 'qualificados') {
+      const d = JSON.parse(localStorage.getItem('ev_leads_qualificados') || '[]');
+      downloadCSV(d, `leads_SDR_${new Date().toISOString().slice(0,10)}.csv`);
+    } else if (exp === 'nurture') {
+      const d = JSON.parse(localStorage.getItem('ev_leads_nurture') || '[]');
+      downloadCSV(d, `leads_nurture_${new Date().toISOString().slice(0,10)}.csv`);
+    } else if (exp === 'todos') {
+      const q = JSON.parse(localStorage.getItem('ev_leads_qualificados') || '[]');
+      const n = JSON.parse(localStorage.getItem('ev_leads_nurture') || '[]');
+      downloadCSV([...q, ...n], `leads_todos_${new Date().toISOString().slice(0,10)}.csv`);
+    }
+  }
+
+  // ===== INIT =====
+  document.addEventListener('DOMContentLoaded', () => {
+    showStep(0);
+    checkExport();
+  });
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && currentStep === 1) validateStep1();
+  });
+</script>
+</body>
+</html>
