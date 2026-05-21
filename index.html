@@ -84,6 +84,24 @@
     color: #ff4d1c !important;
   }
 
+  .logo-img {
+    display: block;
+    margin: -40px auto -32px;
+    height: 160px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (max-width: 480px) {
+    .logo-img {
+      height: 130px;
+      margin: -30px auto -26px;
+    }
+  }
+
   .logo-sub {
     font-size: 11px;
     color: #b0b8c8;
@@ -719,7 +737,7 @@
 
 <div class="container">
   <div class="logo">
-    <div class="logo-text">EFEITO VENDAS</div>
+    <img src="logo.jpg" alt="Efeito Vendas" class="logo-img" width="1080" height="1080">
     <div class="logo-sub">Diagnóstico de Loja Shopee</div>
   </div>
 
@@ -901,7 +919,7 @@
         </div>
         <div class="option-check"></div>
       </div>
-      <div class="option" onclick="selectOption(this, 'faturamento', 'ACIMA DE 1 MILHÃO MÊS')" data-value="ACIMA DE 1 MILHÃO MÊS">
+      <div class="option" onclick="selectOption(this, 'faturamento', 'ACIMA DE 500 MIL MÊS')" data-value="ACIMA DE 500 MIL MÊS">
         <div class="option-icon">🏅</div>
         <div class="option-content">
           <div class="option-label">Acima de R$ 500k/mês</div>
@@ -1128,8 +1146,8 @@
     <div id="qualifiedDiagCards"></div>
 
     <div class="cta-block">
-      <h3>PRÓXIMO PASSO: ANÁLISE COMPLETA GRATUITA</h3>
-      <p>Nosso especialista vai fazer uma análise completa da sua loja ao vivo — mostrando exatamente onde você está perdendo vendas e o que ajustar para aumentar seu faturamento.</p>
+      <h3>PRÓXIMO PASSO: REUNIÃO COM NOSSO TIME</h3>
+      <p>Nosso time vai fazer uma análise rápida da sua conta e a partir disso traçar a melhor estratégia pra sua loja crescer. Dura 30 min, sem compromisso.</p>
       <button class="btn-primary" onclick="redirectQualified()">AGENDAR MINHA ANÁLISE GRATUITA →</button>
     </div>
 
@@ -1139,16 +1157,36 @@
   </div>
 
   <!-- ======== RESULT: NURTURE ======== -->
+  <!-- ======== RESULT: NURTURE (FRIO - análise + convite) ======== -->
   <div class="step" id="step-nurture" data-step="result">
-    <div class="result-badge nurture">✅ Acesso Liberado</div>
+    <div class="result-badge nurture">📋 Diagnóstico Concluído</div>
+
+    <h1 class="headline">Sua <em>análise está pronta</em></h1>
+    <p class="subtext">Com base nas suas respostas, montamos um diagnóstico personalizado do seu momento atual na Shopee.</p>
+
+    <div id="nurtureDiagCards"></div>
+    
+    <div id="nurtureAnalysisText" style="background:#0f1114; border:1px solid #1e2328; border-radius:12px; padding:20px; margin:16px 0; font-size:14px; line-height:1.7; color:#e0e6f0;"></div>
+
+    <div class="cta-block">
+      <h3>SEU PRÓXIMO PASSO IDEAL</h3>
+      <p id="nurtureCTAText">Pelo seu momento, o melhor caminho agora é entrar no nosso Grupo VIP no WhatsApp — onde você vai receber as estratégias certas pra estruturar sua loja antes de escalar.</p>
+      <button class="btn-primary" onclick="showVipInvite()" style="background:#ff4d1c;">
+        QUERO O CONVITE PRO GRUPO VIP →
+      </button>
+    </div>
+
+    <div style="text-align:center; font-size:12px; color:#b0b8c8; margin-top:12px;">
+      🎁 Acesso gratuito · Sem compromisso
+    </div>
+  </div>
+
+  <!-- ======== RESULT: GRUPO VIP (página final só com botão) ======== -->
+  <div class="step" id="step-vipinvite" data-step="result">
+    <div class="result-badge nurture" style="background:rgba(37,211,102,0.15); border-color:rgba(37,211,102,0.3); color:#25D366;">✅ Acesso Liberado</div>
 
     <h1 class="headline">Bem-vinda ao <em>Grupo VIP</em></h1>
     <p class="subtext">Você ganhou acesso ao nosso grupo exclusivo no WhatsApp com estratégias, ferramentas e conteúdo pra você crescer na Shopee.</p>
-
-    <div class="diag-card">
-      <div class="diag-label">O que você recebe</div>
-      <div class="diag-value">Acesso imediato ao grupo VIP no WhatsApp</div>
-    </div>
 
     <div class="checklist">
       <div class="check-item done">
@@ -1319,6 +1357,106 @@
     }, 3200);
   }
 
+  // ===== ANÁLISE INTELIGENTE =====
+  function buildAnalysisText(data) {
+    const fat = data.faturamento || '';
+    const margem = data.margem || '';
+    const inv = data.investimento || '';
+    const dif = data.dificuldade || '';
+    const tipo = data.tipo || '';
+    
+    const isIniciante = fat === 'ESTOU INICIANDO';
+    const isPequeno = fat === 'ATÉ 10 MIL MÊS';
+    const isMedio = fat === 'ATÉ 50 MIL MÊS';
+    const isAlto = fat === 'ACIMA DE 50 MIL MÊS';
+    const isGrande = fat === 'ACIMA DE 500 MIL MÊS';
+    const margemFraca = margem.includes('intuição') || margem.includes('Nunca') || margem.includes('por alto');
+    const margemBoa = margem.includes('planilha') || margem.includes('exatamente');
+    const isFabImp = tipo.includes('Fabricante') || tipo.includes('Importador');
+    const temDinheiro = inv.includes('orçamento') || inv.includes('caso de sucesso');
+    // Iniciante FAB/IMP com dinheiro = quente, não frio
+    const isIniciantePagante = isIniciante && isFabImp && temDinheiro;
+    const isFrio = (isIniciante && !isIniciantePagante) || inv.includes('apenas orientação gratuita');
+    
+    const fatLabel = {
+      'ESTOU INICIANDO': 'está começando',
+      'ATÉ 10 MIL MÊS': 'fatura até R$ 10 mil/mês',
+      'ATÉ 50 MIL MÊS': 'fatura entre R$ 10 mil e R$ 50 mil/mês',
+      'ACIMA DE 50 MIL MÊS': 'fatura acima de R$ 50 mil/mês',
+      'ACIMA DE 500 MIL MÊS': 'fatura acima de R$ 500 mil/mês'
+    }[fat] || fat;
+    
+    // ===== MONTA DIAGNÓSTICO (1-2 frases) =====
+    let diagnostico = '';
+    
+    // PRIORIDADE 1: margem fraca + faturamento (problema mais crítico)
+    if (!isIniciante && margemFraca) {
+      diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel}, mas o problema crítico é a margem — você marcou que ${margem.toLowerCase()}. Nesse porte, margem mal calculada vira <strong>prejuízo silencioso em SKUs específicos</strong> que puxam o resultado todo pra baixo.`;
+    }
+    // PRIORIDADE 2: faturamento grande + dificuldade específica
+    else if (isGrande || isAlto) {
+      if (dif.toLowerCase().includes('escalar')) {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel} e quer escalar com lucro. Nesse nível, cada decisão de Ads ou margem tem <strong>impacto multiplicado</strong> — uma loja desse porte precisa de gestão técnica, não de tentativa e erro.`;
+      } else if (dif.toLowerCase().includes('anuncio') || dif.toLowerCase().includes('ads')) {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel} e identificou que precisa otimizar Ads. Nesse volume, <strong>ajuste de campanha rende rápido</strong> — desde que feito sobre produtos com margem positiva.`;
+      } else {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel} e sua prioridade é ${dif.toLowerCase()}. Nesse porte, cada ajuste técnico bem feito reflete em centenas de milhares no resultado.`;
+      }
+    }
+    // PRIORIDADE 3: médio com dificuldade
+    else if (isMedio) {
+      if (dif.toLowerCase().includes('escalar')) {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel} e está no momento crítico: escalar com margem ou ficar travada nesse patamar. A diferença é <strong>estratégia, não esforço</strong>.`;
+      } else if (dif.toLowerCase().includes('tudo isso junto')) {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel} e sente que precisa resolver várias frentes ao mesmo tempo. Quem tenta resolver tudo de uma vez <strong>não resolve nada</strong> — precisa de plano sequencial.`;
+      } else if ((dif.toLowerCase().includes('anuncio') || dif.toLowerCase().includes('ads')) && margemBoa) {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel}, já controla margem, e quer otimizar Ads. Esse é o cenário onde a gente vê <strong>2x de faturamento em 60 dias</strong> — porque a estrutura já está certa.`;
+      } else if (dif.toLowerCase().includes('anuncio') || dif.toLowerCase().includes('ads')) {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel} e quer otimizar Ads. <strong>Ajuste de campanha rende rápido</strong> — desde que feito sobre produtos com margem positiva.`;
+      } else {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel} e sua prioridade é ${dif.toLowerCase()}. É o momento exato de profissionalizar a operação.`;
+      }
+    }
+    // PRIORIDADE 4: pequeno
+    else if (isPequeno) {
+      diagnostico = `<strong>Entendi seu cenário.</strong> Você ${fatLabel}, abaixo do seu potencial real. A virada de R$ 10 mil pra R$ 50 mil é a mais difícil — e tem <strong>caminho técnico</strong> pra acelerar isso.`;
+    }
+    // PRIORIDADE 5: iniciante
+    else if (isIniciante) {
+      if (isIniciantePagante) {
+        // Pagante: quer pagar pra montar operação certa
+        const ehFab = tipo.includes('Fabricante');
+        const vantagem = ehFab 
+          ? 'produto próprio' 
+          : 'controle de origem do produto';
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você está começando como ${tipo.toLowerCase().replace('sou ', '')} e quer investir pra montar a operação do jeito certo — esse é o melhor momento pra fazer isso. Você já tem a maior vantagem do mercado: <strong>${vantagem}</strong>. O que define seu próximo ano é estruturar a operação certa <strong>antes</strong> de queimar caixa.`;
+      } else if (isFabImp) {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você está começando como ${tipo.toLowerCase().replace('sou ', '')} — já tem vantagem por controlar o produto. Mas precisa estruturar a operação <strong>antes de investir pesado</strong>.`;
+      } else {
+        diagnostico = `<strong>Entendi seu cenário.</strong> Você está na fase de estruturação inicial — momento mais decisivo. Quem começa certo chega muito mais longe.`;
+      }
+    } else {
+      diagnostico = `<strong>Entendi seu cenário.</strong> ${fat} · ${dif}.`;
+    }
+    
+    // ===== MONTA CTA (fechamento) =====
+    let cta = '';
+    if (isFrio) {
+      // Frio → Grupo VIP (sem reunião)
+      cta = `<br><br>A gente já trabalhou com lojas nesse mesmo cenário. <strong>No Grupo VIP a gente compartilha as estratégias certas pra cada momento</strong> — gratuito, direto no WhatsApp.`;
+    } else {
+      // Quente/Morno → reunião
+      cta = `<br><br>A gente já fez essa virada em <strong>lojas com cenário parecido com o seu</strong>. O próximo passo é uma reunião com nosso time — eles fazem uma análise rápida da sua conta e a partir disso traçam a <strong>melhor estratégia pra sua loja crescer</strong>.`;
+    }
+    
+    return diagnostico + cta;
+  }
+  
+  function showVipInvite() {
+    showStep('vipinvite');
+  }
+
+
   // ===== RESULTS =====
   function showQualifiedResult() {
     // Build diagnosis cards
@@ -1372,11 +1510,75 @@
       <div class="diag-label">Prioridade de Trabalho</div>
       <div class="diag-value">${dif}</div>
     </div>`;
+    
+    // ANÁLISE TEXTUAL RICA - insere após os cards
+    const analysisDiv = document.createElement('div');
+    analysisDiv.style.cssText = 'background:#0f1114; border:1px solid #1e2328; border-radius:12px; padding:20px; margin-top:16px; font-size:14px; line-height:1.7; color:#e0e6f0;';
+    analysisDiv.innerHTML = buildAnalysisText(answers);
+    cards.appendChild(analysisDiv);
 
     showStep('qualified');
   }
 
   function showNurtureResult() {
+    // Build diagnosis cards
+    const cards = document.getElementById('nurtureDiagCards');
+    if (!cards) { showStep('nurture'); return; }
+    cards.innerHTML = '';
+
+    const fat = answers.faturamento || '';
+    const margem = answers.margem || '';
+    const medo = answers.medo || '';
+    const dif = answers.dificuldade || '';
+    const tipo = answers.tipo || '';
+
+    // Cards diagnóstico
+    cards.innerHTML += `<div class="diag-card">
+      <div class="diag-label">Seu Momento Atual</div>
+      <div class="diag-value warning">${fat || 'Fase de Estruturação'}</div>
+    </div>`;
+
+    if (tipo) {
+      cards.innerHTML += `<div class="diag-card">
+        <div class="diag-label">Tipo de Operação</div>
+        <div class="diag-value">${tipo}</div>
+      </div>`;
+    }
+
+    const margemClass = margem.includes('planilha') || margem.includes('exatamente') ? 'success' : 'danger';
+    cards.innerHTML += `<div class="diag-card">
+      <div class="diag-label">Controle de Margem</div>
+      <div class="diag-value ${margemClass}">${margem || '—'}</div>
+    </div>`;
+
+    if (dif) {
+      cards.innerHTML += `<div class="diag-card">
+        <div class="diag-label">Prioridade de Trabalho</div>
+        <div class="diag-value">${dif}</div>
+      </div>`;
+    }
+
+    if (medo) {
+      cards.innerHTML += `<div class="diag-card">
+        <div class="diag-label">Principal Risco Identificado</div>
+        <div class="diag-value warning">${medo}</div>
+      </div>`;
+    }
+
+    // Análise textual rica
+    document.getElementById('nurtureAnalysisText').innerHTML = buildAnalysisText(answers);
+
+    // Ajustar CTA conforme tier
+    const tempLead = calcTemperatura(answers);
+    const ctaText = document.getElementById('nurtureCTAText');
+    if (ctaText) {
+      if (tempLead === 'frio' && fat === 'ESTOU INICIANDO') {
+        ctaText.textContent = 'Pelo seu momento (fase inicial), o melhor caminho agora é entrar no nosso Grupo VIP no WhatsApp — onde você vai receber as estratégias certas pra estruturar sua loja antes de investir pesado.';
+      } else {
+        ctaText.textContent = 'Pelo seu momento, o melhor caminho agora é entrar no nosso Grupo VIP no WhatsApp — onde você vai receber estratégias práticas pra crescer na Shopee.';
+      }
+    }
+
     showStep('nurture');
   }
 
@@ -1389,7 +1591,7 @@
     if (fat === 'ATÉ 10 MIL MÊS') pts += 25;
     if (fat === 'ATÉ 50 MIL MÊS') pts += 50;
     if (fat === 'ACIMA DE 50 MIL MÊS') pts += 75;
-    if (fat === 'ACIMA DE 1 MILHÃO MÊS') pts += 90;
+    if (fat === 'ACIMA DE 500 MIL MÊS') pts += 90;
 
     if (margem.includes('planilha')) pts += 20;
     else if (margem.includes('alto')) pts += 10;
@@ -1419,11 +1621,18 @@
   function calcTemperatura(data) {
     const fat = data.faturamento || '';
     const inv = data.investimento || '';
+    const tipo = data.tipo || '';
     const isIniciando = fat === 'ESTOU INICIANDO';
-    const naoQuer = inv.includes('apenas orientação gratuita');
+    const isFabImp = tipo.includes('Fabricante') || tipo.includes('Importador');
+    const temDinheiro = inv.includes('orçamento') || inv.includes('caso de sucesso');
 
-    if (!isIniciando && (inv.includes('orçamento') || inv.includes('caso de sucesso'))) return 'quente';
+    // Iniciante FAB/IMP com dinheiro = quente (quer pagar pra montar operação)
+    if (isIniciando && isFabImp && temDinheiro) return 'quente';
+    
+    // Tem faturamento + disposição razoável
+    if (!isIniciando && temDinheiro) return 'quente';
     if (!isIniciando && inv.includes('Talvez')) return 'morno';
+    
     return 'frio';
   }
 

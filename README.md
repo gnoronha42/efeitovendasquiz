@@ -41,8 +41,10 @@ principal já hospedado em `consultoriaefeitovendas.com.br`.
 
 1. Vá no projeto do quiz na Vercel → **Settings → Domains**.
 2. Adicione: `quiz.consultoriaefeitovendas.com.br`.
-3. A Vercel vai mostrar **qual registro DNS criar** (geralmente um CNAME
-   apontando para `cname.vercel-dns.com`).
+3. A Vercel vai mostrar **qual registro DNS criar**. Hoje ela exige um
+   CNAME apontando para um host único do projeto, no formato
+   `<id>.vercel-dns-017.com` (use **exatamente** o valor que aparecer na
+   sua aba *DNS Records* — não use o antigo `cname.vercel-dns.com`).
 
 ### 2. Hostinger → Criar o registro DNS
 
@@ -55,9 +57,13 @@ Como os nameservers atuais são do parking (`ns1.dns-parking.com` /
 2. Adicione um registro:
    - **Tipo:** `CNAME`
    - **Nome:** `quiz`
-   - **Valor:** `cname.vercel-dns.com`
+   - **Valor:** o host que a Vercel mostrar em *DNS Records*
+     (ex.: `1525f46deb78a3a8.vercel-dns-017.com`). **Não** use o antigo
+     `cname.vercel-dns.com`.
    - **TTL:** padrão (3600).
 3. Salve. A propagação leva de minutos a algumas horas.
+4. Volte na Vercel e clique em **Refresh**; o status deve ir de
+   `Invalid Configuration` para `Valid Configuration`.
 
 **Opção B:** trocar os nameservers para a Vercel
 (`ns1.vercel-dns.com` e `ns2.vercel-dns.com`).
@@ -70,8 +76,8 @@ a Opção A.
 Depois da propagação:
 
 ```bash
-dig +short quiz.consultoriaefeitovendas.com.br
-# deve responder com algo terminando em ...vercel-dns.com ou um IP da Vercel
+dig +short quiz.consultoriaefeitovendas.com.br CNAME
+# deve responder algo como: 1525f46deb78a3a8.vercel-dns-017.com.
 ```
 
 A aba **Domains** do projeto na Vercel passa para `Valid Configuration` e o
