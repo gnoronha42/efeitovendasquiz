@@ -84,24 +84,6 @@
     color: #ff4d1c !important;
   }
 
-  .logo-img {
-    display: block;
-    margin: -40px auto -32px;
-    height: 160px;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    pointer-events: none;
-    user-select: none;
-  }
-
-  @media (max-width: 480px) {
-    .logo-img {
-      height: 130px;
-      margin: -30px auto -26px;
-    }
-  }
-
   .logo-sub {
     font-size: 11px;
     color: #b0b8c8;
@@ -691,6 +673,15 @@
     margin: 24px 0;
   }
 
+  /* FOOTER */
+  .footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 32px;
+    padding-bottom: 24px;
+  }
+
   /* WPP BIG BUTTON */
   .btn-wpp-big {
     width: 100%;
@@ -713,15 +704,6 @@
     background: #20bd5a;
     transform: translateY(-1px);
     box-shadow: 0 8px 24px rgba(37,211,102,0.25);
-  }
-
-  /* FOOTER */
-  .footer-note {
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 32px;
-    padding-bottom: 24px;
   }
 
   /* Responsive */
@@ -761,7 +743,7 @@
 
 <div class="container">
   <div class="logo">
-    <img src="logo.jpg" alt="Efeito Vendas" class="logo-img" width="1080" height="1080">
+    <div class="logo-text">EFEITO VENDAS</div>
     <div class="logo-sub">Diagnóstico de Loja Shopee</div>
   </div>
 
@@ -946,7 +928,7 @@
       <div class="option" onclick="selectOption(this, 'faturamento', 'ACIMA DE 500 MIL MÊS')" data-value="ACIMA DE 500 MIL MÊS">
         <div class="option-icon">🏅</div>
         <div class="option-content">
-          <div class="option-label">Acima de R$ 500k/mês</div>
+          <div class="option-label">Acima de R$ 500.000/mês</div>
           <div class="option-desc">Grande operação, preciso de gestão especializada</div>
         </div>
         <div class="option-check"></div>
@@ -1478,8 +1460,6 @@
     }, 3200);
   }
 
-
-
   // ===== RESULTS =====
   function showQualifiedResult() {
     // Build diagnosis cards
@@ -1550,7 +1530,7 @@
     if (fat === 'ATÉ 10 MIL MÊS') pts += 25;
     if (fat === 'ATÉ 50 MIL MÊS') pts += 50;
     if (fat === 'ACIMA DE 50 MIL MÊS') pts += 75;
-    if (fat === 'ACIMA DE 500 MIL MÊS') pts += 90;
+    if (fat === 'ACIMA DE 1 MILHÃO MÊS') pts += 90;
 
     if (margem.includes('planilha')) pts += 20;
     else if (margem.includes('alto')) pts += 10;
