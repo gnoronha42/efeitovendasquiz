@@ -1357,9 +1357,9 @@
     </div>
 
     <div class="cta-block">
-      <h3>COMECE COM 7 DIAS GRÁTIS</h3>
-      <p>Liberamos acesso gratuito de 7 dias aos nossos cursos completos — para você construir seu negócio do jeito certo desde o começo.</p>
-      <button class="btn-primary" onclick="redirectNurture()">QUERO MEUS 7 DIAS GRÁTIS →</button>
+      <h3>CONHEÇA O SELLER.IA CLUB</h3>
+      <p>O ecossistema completo de ferramentas e inteligência para você construir seu negócio do jeito certo — com dados, estratégia e comunidade.</p>
+      <button class="btn-primary" onclick="redirectNurture()">QUERO CONHECER O SELLER.IA CLUB →</button>
     </div>
 
     <div style="text-align:center; font-size:12px; color:#b0b8c8; margin-top:12px;">
@@ -1389,7 +1389,7 @@
     window.open(url, '_blank');
   }
 
-  const URL_NURTURE = 'https://comunidadeefeitove.astronmembers.com/cadastro/764';
+  const URL_NURTURE = 'https://selleriaclub.com.br/';
 
   // ===== STATE =====
   let currentStep = 0;
@@ -1489,11 +1489,12 @@
       else saveToLocal(answers);
     } catch (e) { saveToLocal(answers); }
 
+    const waitTime = answers.qualificado ? 3200 : 1200;
     setTimeout(() => {
       clearInterval(interval);
       if (answers.qualificado) showQualifiedResult();
       else showNurtureResult();
-    }, 3200);
+    }, waitTime);
   }
 
   // ===== QUALIFIED RESULT =====
@@ -1640,7 +1641,11 @@
 
     showStep('qualified');
   }
-  function showNurtureResult() { showStep('nurture'); }
+  function showNurtureResult() {
+    // Frio vai direto pro Seller.IA Club, sem tela de diagnóstico
+    if (typeof fbq !== 'undefined') fbq('track', 'CompleteRegistration', { content_category: 'seller_ia_club' });
+    window.location.href = URL_NURTURE;
+  }
 
   // ===== REDIRECTS =====
   function redirectQualified() {
@@ -1654,7 +1659,7 @@
     openWpp(msg);
   }
   function redirectNurture() {
-    if (typeof fbq !== 'undefined') fbq('track', 'CompleteRegistration', { content_category: 'astron_7dias' });
+    if (typeof fbq !== 'undefined') fbq('track', 'CompleteRegistration', { content_category: 'seller_ia_club' });
     window.open(URL_NURTURE, '_blank');
   }
 
