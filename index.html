@@ -101,24 +101,6 @@
     color: #ff4d1c !important;
   }
 
-  .logo-img {
-    display: block;
-    margin: -40px auto -32px;
-    height: 160px;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    pointer-events: none;
-    user-select: none;
-  }
-
-  @media (max-width: 480px) {
-    .logo-img {
-      height: 130px;
-      margin: -30px auto -26px;
-    }
-  }
-
   .logo-sub {
     font-size: 11px;
     color: #b0b8c8;
@@ -778,7 +760,7 @@
 
 <div class="container">
   <div class="logo">
-    <img src="logo.png" alt="Efeito Vendas" class="logo-img" width="1080" height="1080">
+    <div class="logo-text">EFEITO VENDAS</div>
     <div class="logo-sub">Diagnóstico de Negócio</div>
   </div>
 
@@ -1377,16 +1359,11 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bHFqZXV1d2h4b3hzZmZ2ZXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzkwNDEsImV4cCI6MjA5MzA1NTA0MX0.fyrcioMRHyFEnKBC-KQeXH3jcCbb19C9rD43h5DRsWY';
   const CAMPANHA = 'Disparo PN';
 
-  const WPP_NUMBERS = ['5541984775343','5541995545261'];
-  function getWppNumber() {
-    // Rodízio aleatório — distribui ~50/50 entre os números
-    return WPP_NUMBERS[Math.floor(Math.random() * WPP_NUMBERS.length)];
-  }
-  function openWpp(msg) {
-    const num = getWppNumber();
-    const url = 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
-    if (typeof fbq !== 'undefined') fbq('track', 'Contact', { content_category: 'whatsapp_time' });
-    window.open(url, '_blank');
+  const WPP_LINK = 'https://w.app/efeitovendas-pn';
+  function openWpp() {
+    // Atendimento por IA — link único cuida de número e fluxo
+    if (typeof fbq !== 'undefined') fbq('track', 'Contact', { content_category: 'whatsapp_ia' });
+    window.open(WPP_LINK, '_blank');
   }
 
   const URL_NURTURE = 'https://selleriaclub.com.br/';
@@ -1649,14 +1626,7 @@
 
   // ===== REDIRECTS =====
   function redirectQualified() {
-    const nome = answers.nome || '';
-    const fat = answers.faturamento || '';
-    const nec = answers.necessidade || '';
-    const msg = 'Olá! Acabei de fazer o diagnóstico da Efeito Vendas 🎯' +
-      '\n\nMeu nome é ' + nome + ', meu negócio fatura ' + fat +
-      ' e o que mais preciso é: ' + nec + '.' +
-      '\n\nGostaria de entender como vocês podem me ajudar! 🚀';
-    openWpp(msg);
+    openWpp();
   }
   function redirectNurture() {
     if (typeof fbq !== 'undefined') fbq('track', 'CompleteRegistration', { content_category: 'seller_ia_club' });
